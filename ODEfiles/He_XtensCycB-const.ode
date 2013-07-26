@@ -1,0 +1,113 @@
+####-- MODEL BASED ON HE ET AL. 2011 PNAS
+#
+#	nomenclature changed: 	active Mad2 -> MCC
+#				Cdc20 -> APC
+#				Xoa, Xoi -> kTa, k_Ti
+#	equation added to account for Sec-Degradation by APC
+#
+#---------------------------------------------------------------
+####--WIRING DIAGRAM
+#
+#	    ......................
+#     | :			         :
+#     | :	        [k_Ti	 :
+#     v :            |^		 v
+#   [CycB:CDk_]......>||<---[CAPP]--->[CAPP-P]
+#     |	 	         v|          <---
+#     |<.. 	        kTa			
+#     v	 : [MCC]<--------------[Mad2]
+#    oOo :   ^|	-------------->	^
+#	     :...||........		    |
+#	         ||       :		    |
+#	         |+-----[APC]......>|
+#	         +------>	    :	|
+#	         ||		        :	|
+#	         |v		        :	|
+#	      [APCMCC]--------------+
+#		                    :
+#			                v
+#	               --->[Sec]--->
+#
+#----------------------------------------------------------------
+
+####--EQUATIONS
+CycB' = k_scy - ( k_dcy + k_dcyapc * ( p_APCt - APCMCC)) * CycB
+kTa' = k_akcy * CycB * ( p_Xt - p_Xtens - kTa) - k_ikpp * CAPP * kTa
+MCCt' = k_amcc * p_Xt * kTa * ( p_Mad2t - MCCt) - k_imcc * MCCt - k_cat * ( p_APCt - APCMCC) * APCMCC
+APCMCC' = k_as * ( p_APCt - APCMCC) * (MCCt - APCMCC) - ( k_di + k_imcc + k_cat * ( p_APCt - APCMCC)) * APCMCC
+CAPP' = k_app * ( p_CAPPt - CAPP) - k_ipp * CycB * CAPP
+Sec' = k_ssec - ( k_dsec + k_dsecapc * ( p_APCt - APCMCC )) * Sec
+
+
+####--ADDITIONAL AND AUXILLIARY EQUATIONS
+k_ikpp = k_akcy
+
+
+aux APC = p_APCt - APCMCC
+aux SecDeg = k_dsecapc * ( p_APCt - APCMCC) * Sec
+
+####--INITIAL CONDITIONS
+CycB(0) = 0.773
+kTa(0) = 1
+MCCt(0) = 1.96
+APCMCC(0) = 1
+CAPP(0) = 0.114
+Sec(0) = 1.94
+
+
+####--PARAMETERS
+par p_Xtens=0
+par p_Mad2t=2
+par p_CAPPt=1
+par p_APCt=1
+par p_Xt=1
+
+
+par k_scy=0.01
+par k_dcy=0.01
+par k_dcyapc=1
+par k_akcy=1
+par k_amcc=1
+par k_imcc=0.01
+par k_cat=1
+par k_as=40
+par k_di=0.1
+par k_app=0.1
+par k_ipp=1
+par k_ssec=0.1
+par k_dsec=0.05
+par k_dsecapc=0.5
+
+#Save parameter sets for slow (40min) and fast SAC disengagement in as 
+set slow { k_scy=0.01, k_dcy=0.01, k_dcyapc=1, k_akcy=1, k_amcc=1, p_Xt=1, k_imxcc=0.01, k_cat=1, k_as=40, k_di=0.1, k_app=0.1, k_ipp=1, k_ssec=0.1, k_dsec=0.05, k_dsecapc=0.5, xlo=0, xhi=100}
+set fast { k_scy=0.001, k_dcy=0.001, k_dcyapc=0.1, k_akcy=10, k_amcc=10, p_Xt=1, k_imcc=0.1, k_cat=10, k_as=400, k_di=1, k_app=0.1, k_ipp=1, k_ssec=0.1, k_dsec=0.05, k_dsecapc=0.5, xlo =0, xhi=30}
+
+
+####--SETTINGS
+
+#NUMERICS
+@ total=500,
+@ dt=0.1,
+@ meth=STIFF,
+
+#GRAPHICS
+@ xlo=0,
+@ xhi=100,
+@ ylo=0,
+@ yhi=2,	
+@ NPLOT=3,
+@ yp1=MCCt, 
+@ yp2=CycB, 
+@ yp3=Xtens,
+
+#AUTO
+@ NTST=15,
+@ NMAX=100000,
+@ NPR=100000,
+@ DS=0.01,
+@ AUTOXMIN=0,
+@ AUTOXMAX=1,
+@ AUTOYMIN=0,
+@ AUTOYMAX=2,
+
+done

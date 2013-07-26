@@ -1,0 +1,109 @@
+﻿#Based on Verdugo et al. 2013 Open Biol.
+#section 3.5 Mitotic Checkpoint-SIMM*
+#--------------------------------------------------------------------------------
+####--WIRING DIAGRAM:
+#
+#               kaNt*(1-p_Xtens)
+#          +---------------------+
+#	       |                     |
+#          v   k_du        k_u   |
+#	     [MCC]<-----[MCCu]---->[Mad2]	
+#	       |	      ^	   ^		
+#     k_di |          |    : 		
+#	       +---[APC]::|:::::
+#     k_as |     ^    |	   :
+#	       v	 |    |    :
+#     [MCC:APC]--+----+    : k_dsecapc
+#                  k_cat   :
+#                          v
+#            ------->[Sec]--------->oOo
+#	        k_ssec      k_dsec
+#
+#---------------------------------------------------------------------------------
+####--SPECIES
+#MCCt 		- total mitotic checkpoint complex :: MCCt -> MCC + MCC:APC + MCCu
+#MCCu		- ubiquitinylated MCC
+#p_Mad2t	- total Mad2 :: p_Mad2t -> Mad2 + MCCu + MCC:APC + MCC
+#p_APCt 	- total anaphase promoting complex
+#APCMCC		- complex MCC:APC (defined via a re-arranged TQSSA for APC)
+#APC		- free anaphase promoting complex
+#Sec		- securing indicator of M-A-transition
+#p_Xtens	- fraction of chromosomes under tension
+#
+####--KINETICS
+#kaNt		- rate constant for Mad2 activation by tensionless chromosomes
+#k_u		- rate constant for ubiquitinylation of MCCu by APC
+#k_cat		- rate constant for MCC:APC->MCCu + APC
+#k_m		- michaelis-menten constant for APC:MCC complex
+#k_ssec		- rate constant for syntheswgwfis of Sec
+#k_dsec		- rate constant for degradation of Sec
+#K_dsecapc	- rate constant for APC-mediated degradation of Sec
+#k_tens		- rate of reduction go tension
+#p_Noff		- time delay for chromosome detachment used in step function
+#				heav(t-p_Noff) is 0 if t<p_Noff and 1 else
+#
+#----------------------------------------------------------------------------------
+	
+####--ODEs
+MCCt' = k_aNt * X0A * ( p_Mad2t - MCCt) - k_u * APC * MCCu
+MCCu' = k_cat * APCMCC - ( k_du + k_u * APC) * MCCu
+Sec' = k_ssec - (k_dsec + k_dsecapc * APC) * Sec
+APCMCC' = k_as * ( p_APCt - APCMCC ) * ( MCCt - APCMCC - MCCu ) - ( k_di + k_cat ) * APCMCC
+X0A' = k_an * p_CycB * ( 1 - p_Xtens - X0A ) - k_in * p_CAPPt * X0A
+APC = p_APCt - APCMCC
+
+####--INITIAL CONDITIONS
+MCCt(0) = 1.99
+MCCu(0) = 0.09
+Sec(0) = 1.8
+APCMCC(0) = 0.98
+X0A(0) = 0.19
+
+
+####--AUXILLIARY EQUATIONS
+
+#Making non-ODE-defined quantities visible as variables
+aux APC  = APC
+aux SecDeg =  ( k_dsec + k_dsecapc * APC) * Sec
+
+####--PARAMETERS
+
+#Conservation:
+par p_Xtens = 0
+par p_CycB = 0.47
+par p_APCt = 1
+par p_Mad2t = 2
+par p_CAPPt = 1
+
+#Rate constants:
+par k_aNt=5
+par k_u=10
+par k_du=5
+par k_cat=0.5
+par k_as=100
+par k_di=0.5
+par k_an=1
+par k_in=2 
+par k_ssec=0.1
+par k_dsec=0.05
+par k_dsecapc=0.5
+par k_tens=0.02
+
+####--SETTINGS
+
+#NUMERICS
+@ total=500,
+@ dt=0.5,
+@ meth=STIFF,
+@ xlo=0,
+@ xhi=100,
+@ ylo=0,
+@ yhi=2,
+@ NPLOT=5,
+@ yp1=MCCt, 
+@ yp2=APCMCC,
+@ yp3=CycB,
+@ yp4=Xtens,
+@ yp5=APC,
+
+done
